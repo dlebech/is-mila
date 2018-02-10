@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Test stuff
+.cache/
+.coverage
+.pytest_cache/
+
+# Other stuff to ignore
+/images
+/output
+/MNIST-data
+/logs
+.vscode/
+env.sh
