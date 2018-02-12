@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from ismila.prepare import flickr
+from mila.prepare import flickr
 
 
 class AsyncMock(MagicMock):
@@ -16,7 +16,7 @@ class AsyncMock(MagicMock):
 
 @pytest.fixture
 def config_change(mocker):
-    config_mock = mocker.patch('ismila.prepare.flickr.config')
+    config_mock = mocker.patch('mila.prepare.flickr.config')
     config_mock.IMAGE_DIRECTORY = './tests/images'
     config_mock.FLICKR_API_KEY = 'xxxx'
     yield
@@ -122,7 +122,7 @@ async def test_process_photo_no_match_one_category(mocker, config_change):
 async def test_process_photo_no_match_multiple_categories(mocker):
     """It should not write any photos if there are more than one target tag."""
     mocker.patch.object(flickr.session, 'get', new_callable=create_session_get_callable(b'testdata'))
-    l = mocker.patch('ismila.prepare.flickr.logger')
+    l = mocker.patch('mila.prepare.flickr.logger')
     await flickr.process_photo({
         'id': 111,
         'farm': 222,
@@ -136,9 +136,9 @@ async def test_process_photo_no_match_multiple_categories(mocker):
 @pytest.mark.asyncio
 async def test_fetch_photos_stop_immediately(mocker):
     """It should stop when there are no more photos"""
-    p = mocker.patch('ismila.prepare.flickr.get_public_photos', new_callable=AsyncMock)
+    p = mocker.patch('mila.prepare.flickr.get_public_photos', new_callable=AsyncMock)
     p.return_value = []
-    mocker.patch('ismila.prepare.flickr.process_photo', new_callable=AsyncMock)
+    mocker.patch('mila.prepare.flickr.process_photo', new_callable=AsyncMock)
 
     await flickr.fetch_photos('abcd', ['cat'], 10)
 
@@ -151,9 +151,9 @@ async def test_fetch_photos_stop_immediately(mocker):
 @pytest.mark.asyncio
 async def test_fetch_photos_stop_after_paging(mocker):
     """It should fetch next page when limit has not been reached."""
-    p = mocker.patch('ismila.prepare.flickr.get_public_photos', new_callable=AsyncMock)
+    p = mocker.patch('mila.prepare.flickr.get_public_photos', new_callable=AsyncMock)
     p.side_effect = [[{}], [{}], []]
-    mocker.patch('ismila.prepare.flickr.process_photo', new_callable=AsyncMock)
+    mocker.patch('mila.prepare.flickr.process_photo', new_callable=AsyncMock)
 
     await flickr.fetch_photos('abcd', ['cat'], 10)
 
@@ -168,9 +168,9 @@ async def test_fetch_photos_stop_after_paging(mocker):
 @pytest.mark.asyncio
 async def test_fetch_photos_stop_at_limit(mocker):
     """It should stop when the limit is reached"""
-    p = mocker.patch('ismila.prepare.flickr.get_public_photos', new_callable=AsyncMock)
+    p = mocker.patch('mila.prepare.flickr.get_public_photos', new_callable=AsyncMock)
     p.side_effect = [[{}], [{}], []]
-    mocker.patch('ismila.prepare.flickr.process_photo', new_callable=AsyncMock)
+    mocker.patch('mila.prepare.flickr.process_photo', new_callable=AsyncMock)
 
     # Note the limit of 1
     await flickr.fetch_photos('abcd', ['cat'], 1)

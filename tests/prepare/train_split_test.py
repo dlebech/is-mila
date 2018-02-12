@@ -5,7 +5,7 @@ import shutil
 
 import pytest
 
-from ismila.prepare import train_split
+from mila.prepare import train_split
 
 
 @pytest.fixture
@@ -20,21 +20,16 @@ def categories():
 
 @pytest.fixture
 def imagedata(mocker, num_images, categories):
-    config_mock = mocker.patch('ismila.prepare.train_split.config')
+    config_mock = mocker.patch('mila.prepare.train_split.config')
     config_mock.IMAGE_DIRECTORY = './tests/images'
-    for category in categories:
-        base_dir = os.path.join('./tests/images/all', category)
+    for i, category in enumerate(categories):
+        base_dir = os.path.join(config_mock.IMAGE_DIRECTORY, 'all', category)
         os.makedirs(base_dir, exist_ok=True)
-        for i in range(num_images):
-            with open(os.path.join(base_dir, '{}.txt'.format(i)), 'w') as f:
+        for j in range(num_images + i):
+            with open(os.path.join(base_dir, '{}.txt'.format(j)), 'w') as f:
                 f.write('')
     yield
-    shutil.rmtree('./tests/images')
-
-
-def test_find_categories(imagedata):
-    """It should find all the categories."""
-    assert set(train_split.find_categories()) == set(['cat', 'dog'])
+    shutil.rmtree(config_mock.IMAGE_DIRECTORY)
 
 
 @pytest.mark.parametrize('num_images', [5])
@@ -55,3 +50,13 @@ def test_split_categories_more_than_hundred(imagedata, categories):
     assert len(os.listdir('./tests/images/train/dog')) == 80
     assert len(os.listdir('./tests/images/validation/cat')) == 20
     assert len(os.listdir('./tests/images/validation/dog')) == 20
+
+
+@pytest.mark.parametrize('num_images', [5])
+def test_split_categories_non_equal_splits(imagedata, categories):
+    """It should not split the data if there are less than 100 images."""
+    train_split.split_categories(categories, equal_splits=False)
+    assert len(os.listdir('./tests/images/train/cat')) == 5
+    assert len(os.listdir('./tests/images/train/dog')) == 6
+    assert len(os.listdir('./tests/images/validation/cat')) == 0
+    assert len(os.listdir('./tests/images/validation/dog')) == 0
