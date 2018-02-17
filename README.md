@@ -33,7 +33,7 @@ The following command downloads photos from Flickr for the given user and
 splits the photos in two groups based on the given tag:
 
 ```shell
-$ python -m ismila.cli prepare flickr --user hej --tags mila
+$ python -m mila.cli prepare flickr --user hej --tags mila
 ```
 
 After running the above command, two directories will be created, one
@@ -50,7 +50,7 @@ mila" or "everything else" essentially:
 Multiple tags separates by comma will result in multiple category directories:
 
 ```shell
-$ python -m ismila.cli prepare flickr --user hej --tags cat,dog
+$ python -m mila.cli prepare flickr --user hej --tags cat,dog
 ```
 
 ```
@@ -69,7 +69,7 @@ After running the image preparation commands, the following command will
 create a random train/validation split:
 
 ```shell
-$ python -m ismila.cli prepare traindata
+$ python -m mila.cli prepare traindata
 ```
 
 ## Train the network
@@ -81,5 +81,5 @@ This is to be determined...
 ### Testing
 
 ```shell
-python -m pytest --cov=ismila tests/
+python -m pytest --cov=mila tests/
 ```

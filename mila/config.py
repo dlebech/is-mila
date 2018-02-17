@@ -1,3 +1,4 @@
+"""Global configuration."""
 import os
 
 FLICKR_API_KEY = os.environ.get('FLICKR_API_KEY', '')
