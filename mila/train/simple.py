@@ -72,6 +72,8 @@ def create_image_iterators(image_size: tuple, batch_size: int, categories: list)
 
 
 def train(image_size, epochs, batch_size, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+
     categories = util.find_categories('train')
 
     # Prepare the network model
@@ -90,7 +92,7 @@ def train(image_size, epochs, batch_size, output_dir):
         callbacks=[
             TensorBoard(
                 log_dir='./logs',
-                histogram_freq=5,
+                histogram_freq=0,
                 batch_size=batch_size,
                 write_graph=True,
                 write_images=True),
