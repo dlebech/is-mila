@@ -2,6 +2,7 @@
 """
 import os
 import shutil
+import tempfile
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,12 +16,13 @@ class AsyncMock(MagicMock):
 
 
 @pytest.fixture
-def config_change(mocker):
+def configmock(mocker):
+    tmp = tempfile.mkdtemp(prefix='mila_tests_')
     config_mock = mocker.patch('mila.prepare.flickr.config')
-    config_mock.IMAGE_DIRECTORY = './tests/images'
+    config_mock.IMAGE_DIRECTORY = os.path.join(tmp, 'images')
     config_mock.FLICKR_API_KEY = 'xxxx'
-    yield
-    shutil.rmtree('./tests/images', ignore_errors=True)
+    yield config_mock.IMAGE_DIRECTORY
+    shutil.rmtree(tmp)
 
 
 def create_session_get_callable(data):
@@ -33,7 +35,7 @@ def create_session_get_callable(data):
     return MockGet
 
 
-def test_merge_params(config_change):    
+def test_merge_params(configmock):    
     """It should merge the default params into the given params."""
     params = {
         'method': 'flickr.people.getPhotos',
@@ -85,7 +87,7 @@ async def test_get_public_photos_non_empty(mocker):
 
 
 @pytest.mark.asyncio
-async def test_process_photo_matches_tag(mocker, config_change):
+async def test_process_photo_matches_tag(mocker, configmock):
     """It should write the photo to the tags location."""
     mocker.patch.object(flickr.session, 'get', new_callable=create_session_get_callable(b'testdata'))
     await flickr.process_photo({
@@ -95,14 +97,14 @@ async def test_process_photo_matches_tag(mocker, config_change):
         'secret': 555,
         'tags': 'cat dog unity'
     }, ['cat'])
-    expected_filename = './tests/images/all/cat/111.jpg'
+    expected_filename = os.path.join(configmock, 'all/cat/111.jpg')
     assert os.path.exists(expected_filename)
     with open(expected_filename) as f:
         assert f.read() == 'testdata'
 
 
 @pytest.mark.asyncio
-async def test_process_photo_no_match_one_category(mocker, config_change):
+async def test_process_photo_no_match_one_category(mocker, configmock):
     """It should write the photo to the not_tag location."""
     mocker.patch.object(flickr.session, 'get', new_callable=create_session_get_callable(b'testdata'))
     await flickr.process_photo({
@@ -112,7 +114,7 @@ async def test_process_photo_no_match_one_category(mocker, config_change):
         'secret': 555,
         'tags': 'only dog here'
     }, ['cat'])
-    expected_filename = './tests/images/all/not_cat/111.jpg'
+    expected_filename = os.path.join(configmock, 'all/not_cat/111.jpg')
     assert os.path.exists(expected_filename)
     with open(expected_filename) as f:
         assert f.read() == 'testdata'

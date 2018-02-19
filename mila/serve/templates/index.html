@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Image Predictor</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-auto">
+          <div class="card" id="dropzone">
+            <div class="card-body">
+              <p class="card-text text-center">Drag an image here or click to upload</p>
+              <div id="prediction"></div>
+            </div>
+          </div>
+          <input type="file" id="image-file" style="display:none;">
+        </div>
+      </div>
+    </div>
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.min.js"
+      integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+      crossorigin="anonymous">
+    </script>
+    <script>
+      // Inline scripts are so this year.
+      $(document).ready(() => {
+        const $dropzone = $('#dropzone');
+        const $imageFile = $('#image-file');
+        const $prediction = $('#prediction');
+
+        // When an image is dropped, add it to the card and make a prediction
+        const handleDrop = e => {
+          const file = e.dataTransfer ? e.dataTransfer.files[0] : e.target.files[0];
+          $prediction.empty()
+            .append($('<img>')
+              .addClass('img-fluid')
+              .attr('src', URL.createObjectURL(file))
+            );
+
+          const $p = $('<p>')
+            .addClass('text-center')
+            .text('loading prediction...');
+          $prediction.append($p);
+
+          $.ajax({
+            url: `${window.location.pathname}/prediction`,
+            method: 'POST',
+            data: file,
+            processData: false,
+            contentType: false
+          })
+          .then(res => {
+            const prediction = res[0];
+            $p.text(JSON.stringify(prediction));
+          })
+          .catch(() => $p.text('An error occurred :('));
+        }
+
+        $imageFile.on('change', e => handleDrop(e));
+
+        $dropzone
+          .on('dragover', e => {
+            e.preventDefault();
+            $dropzone.addClass('bg-success');
+          })
+          .on('dragleave', e => {
+            e.preventDefault();
+            $dropzone.removeClass('bg-success');
+          })
+          .on('drop', e => {
+            e.preventDefault();
+            $dropzone.removeClass('bg-success');
+            handleDrop(e.originalEvent);
+          })
+          .on('click', e => $imageFile.trigger('click'));
+      });
+    </script>
+  </body>
+</html>

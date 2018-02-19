@@ -47,16 +47,16 @@ def test_main_train_simple_with_params(mocker):
         '--epochs',
         '123',
         '--outputdir',
-        './tests',
+        './anotherplace/mymodeldir',
         '--imagesize',
         '111,222',
         '--batchsize',
         '456'])
-    simple_mock.assert_called_with((111, 222), 123, 456, './tests')
+    simple_mock.assert_called_with((111, 222), 123, 456, './anotherplace/mymodeldir')
 
 
 def test_main_predict_defaults(mocker):
     """It should run the training with default parameters."""
     simple_mock = mocker.patch('mila.predict.predict')
-    cli.main(['predict', 'images/cat.jpg', 'output/'])
-    simple_mock.assert_called_with('images/cat.jpg', 'output/')
+    cli.main(['predict', 'images/cat.jpg', 'output/mymodeldir'])
+    simple_mock.assert_called_with('images/cat.jpg', 'output/mymodeldir')

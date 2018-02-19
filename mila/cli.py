@@ -3,6 +3,8 @@
 import argparse
 import logging
 
+from . import config
+
 def flickr_run(args):
     """Run Flickr preparation."""
     from .prepare.flickr import run
@@ -58,10 +60,9 @@ def create_parser():
     simple.add_argument('--imagesize', type=image_size_tuple, default=(32, 32), help='The size that input images should be resized to. Has a big influence on training time')
     simple.add_argument('--epochs', type=int, default=10, help='Number of epochs to run the network for')
     simple.add_argument('--batchsize', type=int, default=32, help='The batch size for input images')
-    simple.add_argument('--outputdir', default='./output/simple', help='The output directory for model output')
+    simple.add_argument('--outputdir', default='{}/simple'.format(config.OUTPUT_DIRECTORY), help='The name of the output directory for model output')
     simple.set_defaults(func=train_simple_run)
 
-    #predict = predict.add_subparsers()
     parser.add_argument_group()
     predict.add_argument('imagefile', help='The location of a file to predict')
     predict.add_argument('modeldir', help='The directory where a trained model (h5) is located. It is assumed that the model is named model.h5')

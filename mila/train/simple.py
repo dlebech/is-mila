@@ -1,4 +1,6 @@
 """Train a simple convolutional neural network for image classification."""
+import json
+import logging
 import os
 import typing
 
@@ -10,6 +12,9 @@ from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 
 from .. import config, util
+
+
+logger = logging.getLogger(__name__)
 
 
 def setup_network(image_shape: tuple, num_classes: int):
@@ -71,7 +76,7 @@ def create_image_iterators(image_size: tuple, batch_size: int, categories: list)
     return train_generator, validation_generator
 
 
-def train(image_size, epochs, batch_size, output_dir):
+def train(image_size, epochs, batch_size, output_dir, tensorboard_logs='./logs', save_model_checkpoints=True):
     os.makedirs(output_dir, exist_ok=True)
 
     categories = util.find_categories('train')
@@ -80,24 +85,40 @@ def train(image_size, epochs, batch_size, output_dir):
     model = setup_network(image_size, len(categories))
     train_images, validation_images = create_image_iterators(image_size, batch_size, categories)
 
-    checkpoint_file = os.path.join(output_dir, 'model.{epoch:02d}-{val_loss:.2f}.h5')
-
-    # Train it!
-    steps = util.num_samples('train')
-    model.fit_generator(train_images,
-        steps_per_epoch=steps // batch_size,
-        epochs=epochs,
-        validation_data=validation_images,
-        validation_steps=steps // batch_size // 3,
-        callbacks=[
+    callbacks = []
+    if tensorboard_logs:
+        callbacks.append(
             TensorBoard(
                 log_dir='./logs',
                 histogram_freq=0,
                 batch_size=batch_size,
                 write_graph=True,
-                write_images=True),
-            ModelCheckpoint(checkpoint_file)
-        ])
+                write_images=True
+            )
+        )
+    if save_model_checkpoints:
+        checkpoint_file = os.path.join(output_dir, 'model.{epoch:02d}-{val_loss:.2f}.h5')
+        callbacks.append(ModelCheckpoint(checkpoint_file))
+
+    steps = util.num_samples('train')
+    steps_per_epoch = steps // batch_size
+    validation_steps = steps // batch_size // 3
+    if steps_per_epoch < 1:
+        steps_per_epoch = 1
+    if validation_steps < 1:
+        validation_steps = 1
+
+    logger.info('Training network for {} epochs with normal step size {} and validation step size {}'
+                .format(epochs, steps_per_epoch, validation_steps))
+
+    # Train it!
+    model.fit_generator(train_images,
+        steps_per_epoch=steps_per_epoch,
+        epochs=epochs,
+        validation_data=validation_images,
+        validation_steps=validation_steps,
+        callbacks=callbacks
+    )
     
     # Save some model data
     os.makedirs(output_dir, exist_ok=True)
@@ -105,3 +126,10 @@ def train(image_size, epochs, batch_size, output_dir):
     # XXX: currently doesn't work with default graphviz and pydot packages.
     #keras.utils.plot_model(model, os.path.join(output_dir, 'model.png'))
     model.save(os.path.join(output_dir, 'model.h5'))
+
+    # Save some extra model metadata so we will know later what a prediction
+    # means.
+    with open(os.path.join(output_dir, 'model_metadata.json'), 'w') as f:
+        json.dump({
+            'classes': categories
+        }, f)
