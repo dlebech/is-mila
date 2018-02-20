@@ -1,0 +1,17 @@
+.dockerignore
+Dockerfile
+**/__pycache__
+**/*.py[cod]
+.coverage
+.cache
+.pytest_cache
+.mypy_cache
+.git
+.gitignore
+
+# Local data that's irrelevant
+images/
+tests/
+logs/
+.vscode/
+env.sh
