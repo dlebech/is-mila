@@ -3,6 +3,7 @@ import logging
 import os
 
 from sanic import Sanic, response
+from sanic_cors import CORS
 from jinja2 import Environment, FileSystemLoader
 
 from .. import config, predict
@@ -12,6 +13,7 @@ env = Environment(loader=FileSystemLoader(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
                  'templates')))
 app = Sanic()
+CORS(app)
 
 
 def render(template, **kwargs):
@@ -39,7 +41,7 @@ async def model_info(request, model_name):
     return response.html(render('index.html', **model_info))
 
 
-@app.route('/model/<model_name>/prediction', methods=['POST'])
+@app.route('/model/<model_name>/prediction', methods=['POST', 'OPTIONS'])
 async def model_prediction(request, model_name):
     predictions = predict.predict(request.body, os.path.join(config.OUTPUT_DIRECTORY, model_name), cache_model=True)
     return response.json(predictions)
@@ -47,4 +49,4 @@ async def model_prediction(request, model_name):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    app.run(port=config.PORT)
+    app.run(host='0.0.0.0', port=config.PORT)
