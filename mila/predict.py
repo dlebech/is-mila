@@ -52,17 +52,17 @@ def prepare_image(image_file, target_size):
     if isinstance(image_file, bytes):
         logger.debug('Raw byte image detected')
         img = load_img(io.BytesIO(image_file), target_size=target_size)
-        yield img_to_array(img)
+        yield ('N/A',img_to_array(img))
     elif os.path.isfile(image_file):
         logger.debug('Single file detected')
         img = load_img(image_file, target_size=target_size)
-        yield img_to_array(img)
+        yield (image_file, img_to_array(img))
     elif os.path.isdir(image_file):
         logger.debug('Directory detected')
-        for filename in os.listdir(image_file):
-            img = load_img(os.path.join(image_file, filename),
-                           target_size=target_size)
-            yield img_to_array(img)
+        for filename in sorted(os.listdir(image_file)):
+            filename = os.path.join(image_file, filename)
+            img = load_img(filename, target_size=target_size)
+            yield (filename, img_to_array(img))
 
 model_cache = {}
 
@@ -99,7 +99,7 @@ def predict(image_file, model_output_dir, cache_model=False):
     logger.info('Create predictions')
     predictions = []
 
-    for i, img in enumerate(image_iterator):
+    for i, (img_file, img) in enumerate(image_iterator):
         prediction = model.predict(np.array([img]))
         prediction = prediction[0].tolist() # Numpy array has tolist
         outcomes = None
@@ -116,7 +116,7 @@ def predict(image_file, model_output_dir, cache_model=False):
         else:
             outcomes = { classes[i]: prediction[i] for i, v in enumerate(prediction) }
 
-        logger.info('{}: {}'.format(i, outcomes))
+        logger.info('{}, {}: {}'.format(i, img_file, outcomes))
         predictions.append(outcomes)
 
     return predictions

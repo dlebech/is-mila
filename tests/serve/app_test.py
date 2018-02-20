@@ -66,19 +66,19 @@ def test_model_get_success(modeldata, configmock):
         'Accept': 'application/json'
     })
     assert res.status == 200
-    assert res.json == {
-        'network': {
-            'batch_size': None,
-            'image': {
-                'rows': 30,
-                'cols': 30,
-                'color_channels': 3
-            }
-        },
-        'meta': {
-            'classes': ['a', 'b']
+    assert res.json.get('network', {}) == {
+        'batch_size': None,
+        'image': {
+            'rows': 30,
+            'cols': 30,
+            'color_channels': 3
         }
     }
+    assert res.json.get('meta', {}).get('classes') == ['a', 'b']
+    assert res.json.get('meta', {}).get('latest_logs', {}).get('acc') >= 0
+    assert res.json.get('meta', {}).get('latest_logs', {}).get('loss') >= 0
+    assert res.json.get('meta', {}).get('latest_logs', {}).get('val_acc') >= 0
+    assert res.json.get('meta', {}).get('latest_logs', {}).get('val_loss') >= 0
 
 
 def test_model_get_prediction(modeldata, configmock):
