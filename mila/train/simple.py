@@ -5,13 +5,14 @@ import os
 import typing
 
 import keras.utils
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras.models import Model
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, Flatten
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 
 from .. import config, util
+from . import callback
 
 
 logger = logging.getLogger(__name__)
@@ -76,8 +77,10 @@ def create_image_iterators(image_size: tuple, batch_size: int, categories: list)
     return train_generator, validation_generator
 
 
-def train(image_size, epochs, batch_size, output_dir, tensorboard_logs='./logs', save_model_checkpoints=True):
+def train(image_size, epochs, batch_size, output_dir, tensorboard_logs='./logs', save_model_checkpoints=True, early_stopping=True):
     os.makedirs(output_dir, exist_ok=True)
+    model_filename = os.path.join(output_dir, 'model.h5')
+    model_meta_filename = os.path.join(output_dir, 'model_metadata.json')
 
     categories = util.find_categories('train')
 
@@ -97,8 +100,12 @@ def train(image_size, epochs, batch_size, output_dir, tensorboard_logs='./logs',
             )
         )
     if save_model_checkpoints:
-        checkpoint_file = os.path.join(output_dir, 'model.{epoch:02d}-{val_loss:.2f}.h5')
-        callbacks.append(ModelCheckpoint(checkpoint_file))
+        callbacks.append(ModelCheckpoint(model_filename, save_best_only=True, verbose=1))
+
+    if early_stopping:
+        callbacks.append(EarlyStopping(patience=20, verbose=1))
+
+    callbacks.append(callback.ModelMetadata(model_meta_filename, categories))
 
     steps = util.num_samples('train')
     steps_per_epoch = steps // batch_size
@@ -123,13 +130,5 @@ def train(image_size, epochs, batch_size, output_dir, tensorboard_logs='./logs',
     # Save some model data
     os.makedirs(output_dir, exist_ok=True)
     keras.utils.print_summary(model)
-    # XXX: currently doesn't work with default graphviz and pydot packages.
-    #keras.utils.plot_model(model, os.path.join(output_dir, 'model.png'))
-    model.save(os.path.join(output_dir, 'model.h5'))
-
-    # Save some extra model metadata so we will know later what a prediction
-    # means.
-    with open(os.path.join(output_dir, 'model_metadata.json'), 'w') as f:
-        json.dump({
-            'classes': categories
-        }, f)
+    if not save_model_checkpoints:
+        model.save(model_filename)
