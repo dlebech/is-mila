@@ -6,7 +6,7 @@
 
 A small project to answer the question: does this photo have Mila in it?
 
-But it can also be used for image classification -- just don't expect too much :-)
+But it can also be used for more general image classification -- just don't expect too much :-)
 
 ![Mila](https://farm9.staticflickr.com/8275/28338981466_9bd1fbe82e_n.jpg)
 
