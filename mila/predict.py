@@ -6,6 +6,7 @@ import logging
 
 import numpy as np
 from PIL import Image
+from keras.applications import mobilenet
 from keras.preprocessing.image import load_img, img_to_array
 from keras.models import load_model
 
@@ -20,7 +21,11 @@ def load(model_output_dir):
     if not os.path.exists(model_filename):
         return None, None
 
-    model = load_model(model_filename)
+    # Load the custom mobilenet objects, even if the model doesn't use them.
+    model = load_model(model_filename, custom_objects={
+        'relu6': mobilenet.relu6,
+        'DepthwiseConv2D': mobilenet.DepthwiseConv2D
+    })
 
     meta = None
     with open(metadata_filename) as f:
@@ -100,7 +105,10 @@ def predict(image_file, model_output_dir, cache_model=False):
     predictions = []
 
     for i, (img_file, img) in enumerate(image_iterator):
-        prediction = model.predict(np.array([img]))
+        # All models were trained on scaled images, so we need to scale them
+        # here as well to provide better predictions.
+        img = img * 1.0 / 255
+        prediction = model.predict_on_batch(np.array([img]))
         prediction = prediction[0].tolist() # Numpy array has tolist
         outcomes = None
         # In the case where there is only one prediction, a 0 means the first

@@ -24,6 +24,12 @@ def train_simple_run(args):
     train(args.imagesize, args.epochs, args.batchsize, args.outputdir)
 
 
+def train_mobilenet_run(args):
+    """Run mobilenet CNN training"""
+    from .train.mobilenet import train
+    train(args.epochs, args.batchsize, args.outputdir)
+
+
 def predict_run(args):
     from .predict import predict
     predict(args.imagefile, args.modeldir)
@@ -62,6 +68,12 @@ def create_parser():
     simple.add_argument('--batchsize', type=int, default=32, help='The batch size for input images')
     simple.add_argument('--outputdir', default='{}/simple'.format(config.OUTPUT_DIRECTORY), help='The name of the output directory for model output')
     simple.set_defaults(func=train_simple_run)
+
+    mobilenet = train_subparser.add_parser('mobilenet', help='Train on top of MobileNet.')
+    mobilenet.add_argument('--epochs', type=int, default=10, help='Number of epochs to run the network for')
+    mobilenet.add_argument('--batchsize', type=int, default=32, help='The batch size for input images')
+    mobilenet.add_argument('--outputdir', default='{}/mobilenet'.format(config.OUTPUT_DIRECTORY), help='The name of the output directory for model output')
+    mobilenet.set_defaults(func=train_mobilenet_run)
 
     parser.add_argument_group()
     predict.add_argument('imagefile', help='The location of a file to predict')

@@ -19,3 +19,4 @@ __pycache__/
 /logs
 .vscode/
 env.sh
+.ipynb_checkpoints/
