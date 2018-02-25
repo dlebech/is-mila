@@ -40,7 +40,7 @@ def setup_network(image_size: tuple, num_classes: int):
     
     model.compile(optimizer='rmsprop',
                   loss='binary_crossentropy' if num_classes == 2 else 'categorical_crossentropy',
-                  metrics=['binary_accuracy'])
+                  metrics=['accuracy'])
 
     return base_model, model
 
