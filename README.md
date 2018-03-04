@@ -172,3 +172,12 @@ the API from anywhere.
 ```shell
 python -m pytest --cov=mila tests/
 ```
+
+### Explore models
+
+Using [quiver](https://github.com/keplr-io/quiver), you can explore the
+layers of the trained model in your browser:
+
+```shell
+python -m mila.cli explore ./path/to/image_dir ./path/to/model_dir
+```
