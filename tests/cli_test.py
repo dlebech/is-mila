@@ -63,7 +63,21 @@ def test_main_train_mobilenet_defaults(mocker):
 
 
 def test_main_predict_defaults(mocker):
-    """It should run the training with default parameters."""
+    """It should predict with default parameters."""
     simple_mock = mocker.patch('mila.predict.predict')
     cli.main(['predict', 'images/cat.jpg', 'output/mymodeldir'])
     simple_mock.assert_called_with('images/cat.jpg', 'output/mymodeldir')
+
+
+def test_main_explore(mocker):
+    """It should launch quiver"""
+    mocker.patch('mila.predict.load', return_value=('FAKE_MODEL', {'classes': ['cat', 'dog']}))
+    mocker.patch('tempfile.mkdtemp', return_value='FAKE_TMP_DIR')
+    quiver_mock = mocker.patch('quiver_engine.server.launch')
+    cli.main(['explore', 'images/all/cat', 'output/mymodeldir'])
+    quiver_mock.assert_called_with(
+        'FAKE_MODEL',
+        classes=['cat', 'dog'],
+        input_folder='images/all/cat',
+        temp_folder='FAKE_TMP_DIR',
+        std=[255, 255, 255])

@@ -20,3 +20,4 @@ __pycache__/
 .vscode/
 env.sh
 .ipynb_checkpoints/
+src/
