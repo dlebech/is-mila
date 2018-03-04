@@ -16,3 +16,4 @@ logs/
 .vscode/
 env.sh
 .ipynb_checkpoints/
+src/

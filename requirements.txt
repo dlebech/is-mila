@@ -79,7 +79,7 @@ pytz==2017.3
 PyYAML==3.12
 pyzmq==16.0.3
 qtconsole==4.3.1
-quiver-engine==git+git://github.com/dlebech/quiver.git@binary-classification-support
+-e git+git://github.com/dlebech/quiver.git@binary-classification-support#egg=quiver-engine
 requests==2.18.4
 requests-threads==0.1.1
 rope==0.10.7
