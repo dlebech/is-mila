@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-disable=invalid-name,logging-format-interpolation
+disable=invalid-name,logging-format-interpolation,missing-docstring

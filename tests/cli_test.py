@@ -35,7 +35,7 @@ def test_main_train_simple_defaults(mocker):
     """It should run the training with default parameters."""
     simple_mock = mocker.patch('mila.train.simple.train')
     cli.main(['train', 'simple'])
-    simple_mock.assert_called_with((32, 32), 10, 32, './output/simple')
+    simple_mock.assert_called_with((32, 32), 10, 32, './output/simple', debug=False, use_class_weights=False, use_image_variations=False)
 
 
 def test_main_train_simple_with_params(mocker):
@@ -51,15 +51,18 @@ def test_main_train_simple_with_params(mocker):
         '--imagesize',
         '111,222',
         '--batchsize',
-        '456'])
-    simple_mock.assert_called_with((111, 222), 123, 456, './anotherplace/mymodeldir')
+        '456',
+        '--classweights',
+        '--imagevariations',
+        '--debug'])
+    simple_mock.assert_called_with((111, 222), 123, 456, './anotherplace/mymodeldir', debug=True, use_class_weights=True, use_image_variations=True)
 
 
 def test_main_train_mobilenet_defaults(mocker):
     """It should run the mobilenet training with default parameters."""
     simple_mock = mocker.patch('mila.train.mobilenet.train')
     cli.main(['train', 'mobilenet'])
-    simple_mock.assert_called_with(10, 32, './output/mobilenet')
+    simple_mock.assert_called_with(10, 32, './output/mobilenet', use_class_weights=False, use_image_variations=False)
 
 
 def test_main_predict_defaults(mocker):

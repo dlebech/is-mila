@@ -135,6 +135,19 @@ python -m mila.cli predict images/myimage.jpg output/simple
 This will print the classification of `myimage.jpg` for the model stored in
 the directory `output/simple`.
 
+## Evaluate the model
+
+A simple evaluation function is included that will output a classification
+report and a confusion matrix. Assuming we have a model in the location
+`./output/simple`:
+
+```shell
+python -m mila.cli evaluate output/simple
+```
+
+The evaluation function will use data from the `images/all` directory by
+default, but it can be changed with the `--imagedir` flag.
+
 ## Deploy the model
 
 Besides making predictions from the command-line, is-mila contains a small

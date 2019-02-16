@@ -13,7 +13,7 @@ __pycache__/
 .mypy_cache/
 
 # Other stuff to ignore
-/images
+/images*
 /output
 /MNIST-data
 /logs
