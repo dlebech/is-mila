@@ -8,3 +8,6 @@ OUTPUT_DIRECTORY = os.environ.get('OUTPUT_DIR', './output')
 
 # Web
 PORT = int(os.environ.get('PORT', 8000))
+
+TRAINER_SIMPLE = 'simple'
+TRAINER_MOBILENET = 'mobilenetv2'

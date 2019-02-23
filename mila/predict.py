@@ -5,10 +5,10 @@ import os
 import logging
 
 import numpy as np
-from PIL import Image
-from keras.applications import mobilenet
 from keras.preprocessing.image import load_img, img_to_array
 from keras.models import load_model
+
+from . import util
 
 
 logger = logging.getLogger(__name__)
@@ -21,11 +21,7 @@ def load(model_output_dir):
     if not os.path.exists(model_filename):
         return None, None
 
-    # Load the custom mobilenet objects, even if the model doesn't use them.
-    model = load_model(model_filename, custom_objects={
-        'relu6': mobilenet.relu6,
-        'DepthwiseConv2D': mobilenet.DepthwiseConv2D
-    })
+    model = load_model(model_filename)
 
     meta = None
     with open(metadata_filename) as f:
@@ -57,7 +53,7 @@ def prepare_image(image_file, target_size):
     if isinstance(image_file, bytes):
         logger.debug('Raw byte image detected')
         img = load_img(io.BytesIO(image_file), target_size=target_size)
-        yield ('N/A',img_to_array(img))
+        yield ('N/A', img_to_array(img))
     elif os.path.isfile(image_file):
         logger.debug('Single file detected')
         img = load_img(image_file, target_size=target_size)
@@ -93,11 +89,15 @@ def predict(image_file, model_output_dir, cache_model=False):
         model_cache[model_output_dir] = (model, meta)
 
     classes = meta['classes']
+    trainer = meta.get('trainer', 'N/A')
     _, rows, cols, channels = model.inputs[0].get_shape().as_list() # Tensor has as_list
     assert channels == 3
     assert len(classes) >= 2
-    logger.info('Detected input image size: {}'.format((rows, cols)))
-    logger.debug('Classnames: {}'.format(classes))
+    logger.info('Trainer: {}'.format(trainer))
+    logger.info('Detected input image size: ({}, {})'.format(rows, cols))
+    logger.info('Classnames: {}'.format(classes))
+
+    image_preprocessing_fun = util.image_preprocessing_fun(trainer)
 
     image_iterator = prepare_image(image_file, (rows, cols))
 
@@ -105,9 +105,7 @@ def predict(image_file, model_output_dir, cache_model=False):
     predictions = []
 
     for i, (img_file, img) in enumerate(image_iterator):
-        # All models were trained on scaled images, so we need to scale them
-        # here as well to provide better predictions.
-        img = img * 1.0 / 255
+        img = image_preprocessing_fun(img)
         prediction = model.predict_on_batch(np.array([img]))
         prediction = prediction[0].tolist() # Numpy array has tolist
         outcomes = None
@@ -122,7 +120,10 @@ def predict(image_file, model_output_dir, cache_model=False):
                 classes[not_outcome_index]: 0
             }
         else:
-            outcomes = { classes[i]: prediction[i] for i, v in enumerate(prediction) }
+            logger.info(
+                'Predicted label for {}: {}'
+                .format(img_file, classes[np.argmax(prediction)]))
+            outcomes = {classes[i]: prediction[i] for i, v in enumerate(prediction)}
 
         logger.info('{}, {}: {}'.format(i, img_file, outcomes))
         predictions.append(outcomes)

@@ -21,13 +21,16 @@ def split_categories(categories, equal_splits=True):
     shutil.rmtree(os.path.join(config.IMAGE_DIRECTORY, 'train'), ignore_errors=True)
     shutil.rmtree(os.path.join(config.IMAGE_DIRECTORY, 'validation'), ignore_errors=True)
 
-    max_images = None
+    min_images = min(
+        len(os.listdir(os.path.join(config.IMAGE_DIRECTORY, 'all', category)))
+        for category in categories
+    )
+
+    if min_images < 100:
+        logger.info('At least one class has less than 100 samples, will not create validation set')
+
     if equal_splits:
-        max_images = min(
-            len(os.listdir(os.path.join(config.IMAGE_DIRECTORY, 'all', category)))
-            for category in categories
-        )
-        logger.info('Splitting categories equally, maximum {} images'.format(max_images))
+        logger.info('Splitting categories equally, maximum {} images'.format(min_images))
 
     for category in categories:
         logger.info('Saving images for category {}'.format(category))
@@ -37,12 +40,18 @@ def split_categories(categories, equal_splits=True):
         random.shuffle(images)
 
         if equal_splits:
-            images = images[:max_images]
+            images = images[:min_images]
 
-        # Split the images
-        split_point = math.ceil(len(images) * 0.8) if len(images) >= 100 else len(images)
-        train_images = images[:split_point]
-        validation_images = images[split_point:]
+        train_images = images
+        validation_images = []
+
+        # All categories need at least 100 samples to split, otherwise we use
+        # everything for training.
+        if min_images >= 100:
+            # Split the images
+            split_point = math.ceil(len(images) * 0.8)
+            train_images = images[:split_point]
+            validation_images = images[split_point:]
 
         logger.info('{} trains and {} validation images'
                     .format(len(train_images), len(validation_images)))

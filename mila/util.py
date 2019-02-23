@@ -1,8 +1,15 @@
 """Common utility function."""
+import logging
 import os
 import typing
 
+from sklearn.utils import class_weight
+from keras.applications import mobilenet_v2
+
 from . import config
+
+
+logger = logging.getLogger(__name__)
 
 
 def find_categories(from_dir='all') -> typing.List[str]:
@@ -17,9 +24,36 @@ def find_categories(from_dir='all') -> typing.List[str]:
 
 
 def num_samples(from_dir='train'):
-    """Find the mimium number of image samples in the givem folder."""
+    """Find the number of image samples in the given folder."""
     categories = find_categories(from_dir=from_dir)
-    return min(
+    return sum(
         len(os.listdir(os.path.join(config.IMAGE_DIRECTORY, from_dir, category)))
         for category in categories
     )
+
+
+def compute_class_weight(category_mapping: dict, from_dir='train') -> dict:
+    """Compute the class weights for samples in the given directory."""
+    categories = find_categories(from_dir=from_dir)
+    y = [
+        category_mapping[category]
+        for category in categories
+        for _ in range(len(os.listdir(os.path.join(config.IMAGE_DIRECTORY, from_dir, category))))
+    ]
+
+    class_weights = class_weight.compute_class_weight('balanced', list(set(category_mapping.values())), y)
+
+    return {i: v for i, v in enumerate(class_weights)}
+
+
+def image_preprocessing_fun(trainer):
+    if trainer == config.TRAINER_SIMPLE:
+        return lambda x: x/255.
+
+    if trainer == config.TRAINER_MOBILENET:
+        return mobilenet_v2.preprocess_input
+
+    logger.warning('Unknown trainer {}'.format(trainer))
+
+    # Fall back to the same preprocessing as the simple trainer
+    return lambda x: x/255.

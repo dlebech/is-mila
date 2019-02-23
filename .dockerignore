@@ -10,7 +10,7 @@ Dockerfile
 .gitignore
 
 # Local data that's irrelevant
-images/
+images*/
 tests/
 logs/
 .vscode/
