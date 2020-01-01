@@ -3,8 +3,8 @@ import logging
 import os
 import typing
 
+import tensorflow as tf
 from sklearn.utils import class_weight
-from keras.applications import mobilenet_v2
 
 from . import config
 
@@ -51,7 +51,7 @@ def image_preprocessing_fun(trainer):
         return lambda x: x/255.
 
     if trainer == config.TRAINER_MOBILENET:
-        return mobilenet_v2.preprocess_input
+        return tf.keras.applications.mobilenet_v2.preprocess_input
 
     logger.warning('Unknown trainer {}'.format(trainer))
 

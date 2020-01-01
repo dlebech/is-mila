@@ -3,10 +3,7 @@ import logging
 import math
 import os
 
-from keras.models import Model
-from keras.layers import Dense, GlobalAveragePooling2D
-from keras.applications.mobilenet_v2 import MobileNetV2
-from keras.optimizers import SGD
+import tensorflow as tf
 
 from .. import util, config
 from . import create_image_iterators, prepare_callbacks
@@ -20,18 +17,18 @@ def setup_network(image_size: tuple, num_classes: int):
     """
     # Use MobileNet as the base model, add a fully-connected layer and a
     # prediction layer for the various classes.
-    base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=image_size + (3,))
+    base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(weights='imagenet', include_top=False, input_shape=image_size + (3,))
     x = base_model.output
-    x = GlobalAveragePooling2D()(x)
-    x = Dense(256, activation='relu')(x)
-    predictions = Dense(num_classes, activation='softmax')(x)
-    
-    model = Model(inputs=base_model.input, outputs=predictions)
-    
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dense(256, activation='relu')(x)
+    predictions = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
+
+    model = tf.keras.models.Model(inputs=base_model.input, outputs=predictions)
+
     # Freeze all layers except the ones we just added, i.e. freeze the base model
     for layer in base_model.layers:
         layer.trainable = False
-    
+
     model.compile(optimizer='rmsprop',
                   loss='binary_crossentropy' if num_classes == 2 else 'categorical_crossentropy',
                   metrics=['accuracy'])
@@ -117,7 +114,7 @@ def train(epochs, batch_size, output_dir, use_class_weights=False, use_image_var
 
     # Inspired from the Keras tutorial
     model.compile(
-        optimizer=SGD(lr=0.0001, momentum=0.9),
+        optimizer=tf.keras.optimizers.SGD(lr=0.0001, momentum=0.9),
         loss='binary_crossentropy' if len(categories) == 2 else 'categorical_crossentropy',
         metrics=['accuracy'])
 

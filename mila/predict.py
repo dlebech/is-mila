@@ -5,8 +5,7 @@ import os
 import logging
 
 import numpy as np
-from keras.preprocessing.image import load_img, img_to_array
-from keras.models import load_model
+import tensorflow as tf
 
 from . import util
 
@@ -21,7 +20,7 @@ def load(model_output_dir):
     if not os.path.exists(model_filename):
         return None, None
 
-    model = load_model(model_filename)
+    model = tf.keras.models.load_model(model_filename)
 
     meta = None
     with open(metadata_filename) as f:
@@ -52,18 +51,18 @@ def model_info(model_output_dir):
 def prepare_image(image_file, target_size):
     if isinstance(image_file, bytes):
         logger.debug('Raw byte image detected')
-        img = load_img(io.BytesIO(image_file), target_size=target_size)
-        yield ('N/A', img_to_array(img))
+        img = tf.keras.preprocessing.image.load_img(io.BytesIO(image_file), target_size=target_size)
+        yield ('N/A', tf.keras.preprocessing.image.img_to_array(img))
     elif os.path.isfile(image_file):
         logger.debug('Single file detected')
-        img = load_img(image_file, target_size=target_size)
-        yield (image_file, img_to_array(img))
+        img = tf.keras.preprocessing.image.load_img(image_file, target_size=target_size)
+        yield (image_file, tf.keras.preprocessing.image.img_to_array(img))
     elif os.path.isdir(image_file):
         logger.debug('Directory detected')
         for filename in sorted(os.listdir(image_file)):
             filename = os.path.join(image_file, filename)
-            img = load_img(filename, target_size=target_size)
-            yield (filename, img_to_array(img))
+            img = tf.keras.preprocessing.image.load_img(filename, target_size=target_size)
+            yield (filename, tf.keras.preprocessing.image.img_to_array(img))
 
 model_cache = {}
 

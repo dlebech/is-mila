@@ -3,8 +3,8 @@ import logging
 import math
 import os
 
-from keras.models import Model
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, Flatten
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, Dropout, Flatten
 
 from .. import config, util
 from . import create_image_iterators, prepare_callbacks
@@ -124,7 +124,7 @@ def train(
         use_multiprocessing=False,
         workers=1
     )
-    
+
     # Save some model data
     os.makedirs(output_dir, exist_ok=True)
     if not save_model_checkpoints:

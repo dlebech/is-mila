@@ -5,7 +5,6 @@ import logging
 import os
 
 import tensorflow as tf
-from keras.backend import set_session
 
 from . import config
 
@@ -13,7 +12,7 @@ from . import config
 tensorflow_config = tf.ConfigProto()
 tensorflow_config.gpu_options.allow_growth = True
 sess = tf.Session(config=tensorflow_config)
-set_session(sess)
+tf.keras.backend.set_session(sess)
 
 
 def flickr_run(args):
