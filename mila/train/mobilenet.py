@@ -17,11 +17,13 @@ def setup_network(image_size: tuple, num_classes: int):
     """
     # Use MobileNet as the base model, add a fully-connected layer and a
     # prediction layer for the various classes.
-    base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(weights='imagenet', include_top=False, input_shape=image_size + (3,))
+    base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(
+        weights="imagenet", include_top=False, input_shape=image_size + (3,)
+    )
     x = base_model.output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = tf.keras.layers.Dense(256, activation='relu')(x)
-    predictions = tf.keras.layers.Dense(num_classes, activation='softmax')(x)
+    x = tf.keras.layers.Dense(256, activation="relu")(x)
+    predictions = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
 
     model = tf.keras.models.Model(inputs=base_model.input, outputs=predictions)
 
@@ -29,22 +31,26 @@ def setup_network(image_size: tuple, num_classes: int):
     for layer in base_model.layers:
         layer.trainable = False
 
-    model.compile(optimizer='rmsprop',
-                  loss='binary_crossentropy' if num_classes == 2 else 'categorical_crossentropy',
-                  metrics=['accuracy'])
+    model.compile(
+        optimizer="rmsprop",
+        loss="binary_crossentropy" if num_classes == 2 else "categorical_crossentropy",
+        metrics=["accuracy"],
+    )
 
     return base_model, model
 
 
-def train(epochs, batch_size, output_dir, use_class_weights=False, use_image_variations=False):
+def train(
+    epochs, batch_size, output_dir, use_class_weights=False, use_image_variations=False
+):
     # Default size for mobilenet is 224 by 224, so we'll just stick to that.
     image_size = (224, 224)
 
     os.makedirs(output_dir, exist_ok=True)
-    model_filename = os.path.join(output_dir, 'model.h5')
-    model_meta_filename = os.path.join(output_dir, 'model_metadata.json')
+    model_filename = os.path.join(output_dir, "model.h5")
+    model_meta_filename = os.path.join(output_dir, "model_metadata.json")
 
-    categories = util.find_categories('train')
+    categories = util.find_categories("train")
 
     # Prepare the network model
     base_model, model = setup_network(image_size, len(categories))
@@ -53,13 +59,14 @@ def train(epochs, batch_size, output_dir, use_class_weights=False, use_image_var
         batch_size,
         categories,
         preprocessing_function=util.image_preprocessing_fun(config.TRAINER_MOBILENET),
-        use_image_variations=use_image_variations)
+        use_image_variations=use_image_variations,
+    )
 
-    model_checkpoint_monitor = 'val_loss'
-    validation_samples = util.num_samples('validation')
+    model_checkpoint_monitor = "val_loss"
+    validation_samples = util.num_samples("validation")
     if validation_samples == 0:
         logger.info('No validation samples, changing checkpoint to monitor "loss"')
-        model_checkpoint_monitor = 'loss'
+        model_checkpoint_monitor = "loss"
 
     callbacks = prepare_callbacks(
         model_filename,
@@ -67,9 +74,10 @@ def train(epochs, batch_size, output_dir, use_class_weights=False, use_image_var
         categories,
         batch_size,
         config.TRAINER_MOBILENET,
-        monitor=model_checkpoint_monitor)
+        monitor=model_checkpoint_monitor,
+    )
 
-    steps = util.num_samples('train')
+    steps = util.num_samples("train")
     validation_steps = validation_samples
     steps_per_epoch = math.ceil(steps / batch_size)
     validation_steps = math.ceil(validation_steps / batch_size)
@@ -85,13 +93,16 @@ def train(epochs, batch_size, output_dir, use_class_weights=False, use_image_var
 
     class_weights = None
     if use_class_weights:
-        class_weights = util.compute_class_weight(train_images.class_indices, 'train')
+        class_weights = util.compute_class_weight(train_images.class_indices, "train")
         reverse_mapping = {v: k for k, v in train_images.class_indices.items()}
         nice_class_weights = {reverse_mapping[i]: v for i, v in class_weights.items()}
-        logger.info('Using class weights: {}'.format(nice_class_weights))
+        logger.info("Using class weights: {}".format(nice_class_weights))
 
-    logger.info('Training network for {} epochs with normal step size {} and validation step size {}'
-                .format(epochs, steps_per_epoch, validation_steps))
+    logger.info(
+        "Training network for {} epochs with normal step size {} and validation step size {}".format(
+            epochs, steps_per_epoch, validation_steps
+        )
+    )
 
     # Train it for a few epochs with the base model layers frozen
     model.fit_generator(
@@ -101,7 +112,7 @@ def train(epochs, batch_size, output_dir, use_class_weights=False, use_image_var
         validation_data=validation_images,
         validation_steps=validation_steps,
         callbacks=callbacks,
-        class_weight=class_weights
+        class_weight=class_weights,
     )
 
     # Unfreeze the last 3 base model layers and train again.
@@ -110,13 +121,16 @@ def train(epochs, batch_size, output_dir, use_class_weights=False, use_image_var
     for layer in base_model.layers[-3:]:
         layer.trainable = True
 
-    logger.info('Some layers unfrozen, continuing training')
+    logger.info("Some layers unfrozen, continuing training")
 
     # Inspired from the Keras tutorial
     model.compile(
         optimizer=tf.keras.optimizers.SGD(lr=0.0001, momentum=0.9),
-        loss='binary_crossentropy' if len(categories) == 2 else 'categorical_crossentropy',
-        metrics=['accuracy'])
+        loss="binary_crossentropy"
+        if len(categories) == 2
+        else "categorical_crossentropy",
+        metrics=["accuracy"],
+    )
 
     # Train it for a few epochs with the base model layers frozen
     model.fit_generator(
@@ -126,16 +140,16 @@ def train(epochs, batch_size, output_dir, use_class_weights=False, use_image_var
         validation_data=validation_images,
         validation_steps=validation_steps,
         callbacks=callbacks,
-        class_weight=class_weights
+        class_weight=class_weights,
     )
 
-    logger.info('Training set basic evaluation')
+    logger.info("Training set basic evaluation")
     res = model.evaluate_generator(train_images, steps=steps_per_epoch, verbose=1)
     for metric in zip(model.metrics_names, res):
-        logger.info('Train {}: {}'.format(metric[0], metric[1]))
+        logger.info("Train {}: {}".format(metric[0], metric[1]))
 
     if validation_samples > 0:
         res = model.evaluate_generator(validation_images, steps=validation_steps)
-        logger.info('Validation set basic evaluation')
+        logger.info("Validation set basic evaluation")
         for metric in zip(model.metrics_names, res):
-            logger.info('Validation {}: {}'.format(metric[0], metric[1]))
+            logger.info("Validation {}: {}".format(metric[0], metric[1]))
