@@ -5,6 +5,7 @@ pytest==5.3.2
 pytest-asyncio==0.10.0
 pytest-cov==2.8.1
 python-dateutil==2.7.5
+pytest-mock==1.13.0
 -e git://github.com/dlebech/quiver.git@tf-keras#egg=quiver_engine
 requests==2.22.0
 requests-threads==0.1.1
