@@ -81,7 +81,7 @@ def prepare_callbacks(
             TensorBoard(
                 log_dir="./logs",
                 histogram_freq=0,
-                batch_size=batch_size,
+                #batch_size=batch_size,
                 write_graph=True,
                 write_images=True,
             )

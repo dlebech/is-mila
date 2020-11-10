@@ -8,11 +8,15 @@ import tensorflow as tf
 
 from . import config
 
-# This prevents cuDNN errors when training on GPU for some reason...
-tensorflow_config = tf.ConfigProto()
-tensorflow_config.gpu_options.allow_growth = True
-sess = tf.Session(config=tensorflow_config)
-tf.keras.backend.set_session(sess)
+physical_devices = tf.config.experimental.list_physical_devices("GPU")
+try:
+    # Assert we have GPU
+    assert len(physical_devices) > 0
+
+    # This prevents cuDNN errors when training on GPU for some reason...
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+except AssertionError as e:
+    logging.warning("No GPU found")
 
 
 def flickr_run(args):

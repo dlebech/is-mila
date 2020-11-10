@@ -1,7 +1,7 @@
 
 # Is it Mila?
 
-[![Build Status](https://travis-ci.org/dlebech/is-mila.svg?branch=master)](https://travis-ci.org/dlebech/is-mila)
+[![Build Status](https://travis-ci.com/dlebech/is-mila.svg?branch=master)](https://travis-ci.com/dlebech/is-mila)
 [![codecov](https://codecov.io/gh/dlebech/is-mila/branch/master/graph/badge.svg)](https://codecov.io/gh/dlebech/is-mila)
 
 A small project to answer the question: does this photo have Mila in it?
@@ -123,6 +123,16 @@ epochs that it runs for:
 ```shell
 python -m ismila.cli train simple --epochs 100 --imagesize 256,256
 ```
+
+### Training on GPU
+
+Follow Tensorflow instructions to use [nvidia-docker](https://github.com/NVIDIA/nvidia-docker). Then
+
+```shell
+docker build -f Dockerfile-gpu -t ismila-gpu .
+docker run --rm -it --gpus all -v $PWD:/tf/src -u $(id -u):$(id -g) ismila-gpu bash
+```
+Then run training commands as usual.
 
 ## Make predictions
 

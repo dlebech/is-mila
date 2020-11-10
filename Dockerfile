@@ -1,13 +1,14 @@
-FROM python:3.6
+FROM python:3.8
 
 WORKDIR /usr/src/app
 
 # Install requirements
-COPY requirements-docker.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements_docker.txt .
+COPY requirements_base.txt .
+RUN pip install --no-cache-dir -r requirements_docker.txt
 
 # Make sure mobilenet weights are pre-loaded
-RUN python -c 'from keras.applications.mobilenet import MobileNet; MobileNet(weights="imagenet")'
+RUN python -c 'from tensorflow.keras.applications.mobilenet import MobileNet; MobileNet(weights="imagenet")'
 
 COPY . .
 
