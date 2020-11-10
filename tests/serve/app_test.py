@@ -77,16 +77,16 @@ def test_model_get_success(modeldata, configmock):
         }
     }
     assert res.json.get('meta', {}).get('classes') == ['a', 'b']
-    assert res.json.get('meta', {}).get('latest_logs', {}).get('acc') >= 0
+    assert res.json.get('meta', {}).get('latest_logs', {}).get('accuracy') >= 0
     assert res.json.get('meta', {}).get('latest_logs', {}).get('loss') >= 0
-    assert res.json.get('meta', {}).get('latest_logs', {}).get('val_acc') >= 0
+    assert res.json.get('meta', {}).get('latest_logs', {}).get('val_accuracy') >= 0
     assert res.json.get('meta', {}).get('latest_logs', {}).get('val_loss') >= 0
 
 
 def test_model_get_prediction(modeldata, configmock):
     """It should return a prediction."""
-    f = open(os.path.join(image_dir, 'train', 'a', 'A.png'), 'rb')
-    _, res = app.test_client.post('/model/ab/prediction', data=f)
+    with open(os.path.join(image_dir, 'train', 'a', 'A.png'), 'rb') as f:
+        _, res = app.test_client.post('/model/ab/prediction', data=f.read())
     assert res.status == 200
     assert len(res.json) == 1
     assert 'a' in res.json[0]

@@ -1,8 +1,0 @@
-aiohttp==3.0.1
-graphviz==0.8.2
-h5py==2.9.0
-Jinja2==2.10
-Pillow==5.4.1
-sanic==18.12.0
-Sanic-Cors==0.9.7
-tensorflow==1.15.0

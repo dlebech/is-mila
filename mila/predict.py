@@ -6,11 +6,13 @@ import logging
 
 import numpy as np
 import tensorflow as tf
+from PIL import Image
 
 from . import util
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def load(model_output_dir):
@@ -47,10 +49,9 @@ def model_info(model_output_dir):
 def prepare_image(image_file, target_size):
     if isinstance(image_file, bytes):
         logger.debug("Raw byte image detected")
-        img = tf.keras.preprocessing.image.load_img(
-            io.BytesIO(image_file), target_size=target_size
-        )
-        yield ("N/A", tf.keras.preprocessing.image.img_to_array(img))
+        img = tf.io.decode_image(image_file, channels=3)
+        img = tf.image.resize(img, size=target_size)
+        yield ("N/A", img)
     elif os.path.isfile(image_file):
         logger.debug("Single file detected")
         img = tf.keras.preprocessing.image.load_img(image_file, target_size=target_size)
